@@ -42,3 +42,6 @@ sandboxText/
 
 # AI 助手开发约定（不入库）
 AGENTS.md
+
+# AI 助手本地记忆目录（不入库）
+.workbuddy/
