@@ -1,0 +1,101 @@
+name: Build latest YG APKs
+
+on:
+  push:
+    branches:
+      - YG
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: yg-apks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout YG
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            **/*.gradle*
+            **/gradle-wrapper.properties
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build components
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;35.0.0" \
+            "ndk;29.0.13846066" \
+            "cmake;3.22.1"
+
+      - name: Build main app
+        shell: bash
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon
+
+      - name: Build Xposed plugin
+        shell: bash
+        working-directory: KailLocationXposed
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon
+
+      - name: Collect APKs
+        shell: bash
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk out/KailLocation.apk
+          cp KailLocationXposed/app/build/outputs/apk/debug/app-debug.apk out/KailLocationXposed.apk
+          sha256sum out/*.apk > out/SHA256SUMS.txt
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KailLocation-YG-APKs
+          path: |
+            out/*.apk
+            out/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Update fixed-download release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view yg-latest >/dev/null 2>&1; then
+            gh api \
+              --method PATCH \
+              "repos/${GITHUB_REPOSITORY}/git/refs/tags/yg-latest" \
+              -f sha="${GITHUB_SHA}" \
+              -F force=true
+            gh release edit yg-latest \
+              --title "YG latest APKs" \
+              --notes "Automatically built from YG commit ${GITHUB_SHA}." \
+              --prerelease
+          else
+            gh release create yg-latest \
+              --target "${GITHUB_SHA}" \
+              --title "YG latest APKs" \
+              --notes "Automatically built from YG commit ${GITHUB_SHA}." \
+              --prerelease
+          fi
+          gh release upload yg-latest out/*.apk out/SHA256SUMS.txt --clobber
