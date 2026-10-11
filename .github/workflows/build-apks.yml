@@ -43,6 +43,12 @@ jobs:
             "ndk;29.0.13846066" \
             "cmake;3.22.1"
 
+      - name: Verify YG customizations (unit tests)
+        shell: bash
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:testDebugUnitTest --no-daemon
+
       - name: Build main app
         shell: bash
         run: |
