@@ -28,23 +28,7 @@
 | 虚拟定位 | 提供虚拟坐标能力，便于定位逻辑验证。 |
 | NFC 模拟 | 面向调试场景的 NFC 模拟能力。 |
 
----
-
-## 下载
-
-[app下载](https://www.kaillocation.xyz)
-
-### YG 分支最新自动构建
-
-- [下载软件本体 APK](https://github.com/yyemoji/kail_location/releases/download/yg-latest/KailLocation.apk)
-- [下载 Xposed 插件 APK](https://github.com/yyemoji/kail_location/releases/download/yg-latest/KailLocationXposed.apk)
-
-> 以上链接永久固定，每次 YG 分支有新的提交会自动重新构建并覆盖。同步 `main` 与触发构建的完整流程见 [docs/YG分支同步与APK自动构建.md](docs/YG分支同步与APK自动构建.md)。
-
-每次代码推送到 `YG` 分支后，GitHub Actions 会重新构建并覆盖以上两个固定链接。
-首次工作流完成前，固定链接暂时不可用。
-
----
+ 
 
 ## 文档导航
 
