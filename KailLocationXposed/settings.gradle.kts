@@ -29,4 +29,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "KailLocationXposed"
 include(":app")
- 
